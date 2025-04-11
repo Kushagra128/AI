@@ -237,10 +237,10 @@ const FeedbackPage = async ({ params }: PageProps) => {
 							<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 								{[
 									{
-										href: "/interview",
+										href: `/interview/${interviewId}`,
 										icon: "/practice.svg",
 										title: "Practice Again",
-										desc: "Take another interview",
+										desc: "Retake this interview",
 									},
 									{
 										href: "/resources",

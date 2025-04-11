@@ -121,7 +121,7 @@ export default async function PerformancePage() {
 					<div className="card bg-dark-300 p-6">
 						<h3 className="text-light-400">Average Score</h3>
 						<p className="mt-2 text-3xl font-bold text-primary-200">
-							{averageScore.toFixed(1)}%
+							{completedInterviewsCount > 0 ? averageScore.toFixed(1) : "0"}%
 						</p>
 					</div>
 				</div>
@@ -152,7 +152,7 @@ export default async function PerformancePage() {
 				)}
 
 				{/* Performance by Interview Type */}
-				{completedInterviewsCount > 0 && (
+				{completedInterviewsCount > 0 && typePerformance.length > 0 && (
 					<div className="mb-10">
 						<h2 className="mb-4 text-xl font-semibold text-white">
 							Performance by Interview Type

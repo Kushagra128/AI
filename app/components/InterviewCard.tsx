@@ -34,12 +34,17 @@ const InterviewCard = async ({
 	]);
 
 	const normalizedType = /mix/gi.test(type) ? "Mixed" : type;
+
+	// Format the date correctly - use interview creation date if available, otherwise use createdAt prop
 	const formattedDate = dayjs(
-		feedback?.createdAt || createdAt || Date.now()
+		interview?.createdAt || createdAt || Date.now()
 	).format("MMM D, YYYY");
 
 	// Check if interview is completed (either by feedback or status)
-	const isCompleted = feedback || interview?.status === "completed";
+	const isCompleted = interview?.status === "completed" && feedback;
+
+	// Get the score if available
+	const score = feedback?.totalScore || (isCompleted ? "---" : null);
 
 	return (
 		<div className="card-border w-[360px] max-sm:w-full min-h-96">
@@ -66,14 +71,18 @@ const InterviewCard = async ({
 							/>
 							<p>{formattedDate}</p>
 						</div>
-						<div className="flex flex-row gap-2 items-center">
-							<Image src="/star.svg" alt="Rating" width={22} height={22} />
-							<p>{feedback?.totalScore ?? "---"}/100</p>
-						</div>
+						{score !== null && (
+							<div className="flex flex-row gap-2 items-center">
+								<Image src="/star.svg" alt="Rating" width={22} height={22} />
+								<p>{score}/100</p>
+							</div>
+						)}
 					</div>
 					<p className="line-clamp-2 mt-5 text-light-100">
-						{feedback?.finalAssessment ||
-							"You haven't taken this interview yet. Take it now to improve your skills."}
+						{isCompleted
+							? feedback?.finalAssessment ||
+							  "Interview completed. Check your feedback."
+							: "You haven't taken this interview yet. Take it now to improve your skills."}
 					</p>
 				</div>
 				<div className="flex flex-row justify-between items-center">

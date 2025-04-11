@@ -162,7 +162,7 @@ export default async function DashboardPage() {
 					</div>
 				</section>
 
-				{/* Performance Chart Section */}
+				{/* Performance Chart Section
 				{completedInterviews > 0 && (
 					<section className="mb-8 mt-8 pt-4">
 						<div className="flex justify-between items-center mb-4">
@@ -192,7 +192,7 @@ export default async function DashboardPage() {
 							<PerformanceChart data={chartData} />
 						</div>
 					</section>
-				)}
+				)} */}
 
 				{/* Your Interviews Section */}
 				<section className="mb-8 mt-8">

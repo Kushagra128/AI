@@ -137,7 +137,33 @@ const Agent = ({
 					console.error("Failed to update interview status");
 				}
 
-				// Then create the feedback
+				// Analyze the transcript to generate more realistic scores
+				const technicalScore = analyzeTechnicalKnowledge(transcript);
+				const communicationScore = analyzeCommunication(transcript);
+				const problemSolvingScore = analyzeProblemSolving(transcript);
+				const totalScore = Math.round(
+					(technicalScore + communicationScore + problemSolvingScore) / 3
+				);
+
+				// Generate strengths and areas for improvement based on scores
+				const strengths = [];
+				const areasForImprovement = [];
+
+				if (technicalScore >= 80) strengths.push("Strong technical knowledge");
+				else if (technicalScore < 70)
+					areasForImprovement.push("Need to strengthen technical concepts");
+
+				if (communicationScore >= 80)
+					strengths.push("Excellent communication skills");
+				else if (communicationScore < 70)
+					areasForImprovement.push("Work on clear and concise communication");
+
+				if (problemSolvingScore >= 80)
+					strengths.push("Strong problem-solving abilities");
+				else if (problemSolvingScore < 70)
+					areasForImprovement.push("Practice more complex problem scenarios");
+
+				// Then create the feedback with analyzed scores
 				const { success, feedbackId: id } = await createFeedback({
 					interviewId,
 					userId,
@@ -146,6 +172,54 @@ const Agent = ({
 				});
 
 				if (success && id) {
+					// Update the feedback with analyzed scores
+					try {
+						await fetch(`/api/feedback/${id}`, {
+							method: "PATCH",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								totalScore,
+								finalAssessment: generateFinalAssessment(
+									totalScore,
+									strengths,
+									areasForImprovement
+								),
+								categoryScores: [
+									{
+										name: "Technical Knowledge",
+										score: technicalScore,
+										comment: generateCategoryComment(
+											"Technical Knowledge",
+											technicalScore
+										),
+									},
+									{
+										name: "Communication",
+										score: communicationScore,
+										comment: generateCategoryComment(
+											"Communication",
+											communicationScore
+										),
+									},
+									{
+										name: "Problem Solving",
+										score: problemSolvingScore,
+										comment: generateCategoryComment(
+											"Problem Solving",
+											problemSolvingScore
+										),
+									},
+								],
+								strengths,
+								areasForImprovement,
+							}),
+						});
+					} catch (error) {
+						console.error("Error updating feedback with score:", error);
+					}
+
 					router.push(`/interview/${interviewId}/feedback`);
 				} else {
 					console.error("Failed to save feedback");
@@ -165,6 +239,93 @@ const Agent = ({
 			}
 		}
 	}, [messages, callStatus, feedbackId, interviewId, router, type, userId]);
+
+	// Helper functions for score analysis
+	const analyzeTechnicalKnowledge = (transcript: SavedMessage[]): number => {
+		// Count technical terms and concepts
+		const technicalTerms = transcript.filter(
+			(msg) =>
+				msg.role === "user" &&
+				(msg.content.toLowerCase().includes("algorithm") ||
+					msg.content.toLowerCase().includes("complexity") ||
+					msg.content.toLowerCase().includes("data structure") ||
+					msg.content.toLowerCase().includes("api") ||
+					msg.content.toLowerCase().includes("framework"))
+		).length;
+
+		// Base score on technical term usage and response length
+		const baseScore = Math.min(70 + technicalTerms * 5, 100);
+		return Math.round(baseScore);
+	};
+
+	const analyzeCommunication = (transcript: SavedMessage[]): number => {
+		// Analyze response length and structure
+		const userResponses = transcript.filter((msg) => msg.role === "user");
+		const avgResponseLength =
+			userResponses.reduce(
+				(acc, curr) => acc + curr.content.split(" ").length,
+				0
+			) / userResponses.length;
+
+		// Base score on response length and clarity
+		const baseScore = Math.min(70 + avgResponseLength / 2, 100);
+		return Math.round(baseScore);
+	};
+
+	const analyzeProblemSolving = (transcript: SavedMessage[]): number => {
+		// Look for problem-solving indicators
+		const problemSolvingIndicators = transcript.filter(
+			(msg) =>
+				msg.role === "user" &&
+				(msg.content.toLowerCase().includes("approach") ||
+					msg.content.toLowerCase().includes("solution") ||
+					msg.content.toLowerCase().includes("step") ||
+					msg.content.toLowerCase().includes("consider"))
+		).length;
+
+		// Base score on problem-solving indicators
+		const baseScore = Math.min(70 + problemSolvingIndicators * 5, 100);
+		return Math.round(baseScore);
+	};
+
+	const generateCategoryComment = (category: string, score: number): string => {
+		if (score >= 90)
+			return `Excellent ${category.toLowerCase()} skills demonstrated throughout the interview.`;
+		if (score >= 80) return `Strong ${category.toLowerCase()} abilities shown.`;
+		if (score >= 70)
+			return `Good ${category.toLowerCase()} skills with room for improvement.`;
+		return `Needs improvement in ${category.toLowerCase()} aspects.`;
+	};
+
+	const generateFinalAssessment = (
+		totalScore: number,
+		strengths: string[],
+		areasForImprovement: string[]
+	): string => {
+		let assessment = "Overall Assessment: ";
+
+		if (totalScore >= 90) {
+			assessment += "Outstanding performance! ";
+		} else if (totalScore >= 80) {
+			assessment += "Very good performance! ";
+		} else if (totalScore >= 70) {
+			assessment += "Good performance with some areas to improve. ";
+		} else {
+			assessment += "Performance needs improvement. ";
+		}
+
+		if (strengths.length > 0) {
+			assessment += `\n\nStrengths:\n${strengths.join("\n")}`;
+		}
+
+		if (areasForImprovement.length > 0) {
+			assessment += `\n\nAreas for Improvement:\n${areasForImprovement.join(
+				"\n"
+			)}`;
+		}
+
+		return assessment;
+	};
 
 	const handleCall = useCallback(async () => {
 		setCallStatus(CallStatus.CONNECTING);
