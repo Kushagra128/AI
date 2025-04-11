@@ -118,6 +118,26 @@ const Agent = ({
 			}
 
 			try {
+				// First update the interview status to completed
+				const { success: updateSuccess } = await fetch(
+					"/api/interviews/status",
+					{
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							interviewId,
+							status: "completed",
+						}),
+					}
+				).then((res) => res.json());
+
+				if (!updateSuccess) {
+					console.error("Failed to update interview status");
+				}
+
+				// Then create the feedback
 				const { success, feedbackId: id } = await createFeedback({
 					interviewId,
 					userId,

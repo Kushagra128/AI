@@ -13,7 +13,7 @@ export async function POST() {
     );
   } catch (error) {
     console.error("Logout error:", error);
-    
+
     // Return error response
     return NextResponse.json(
       { success: false, message: "Failed to log out" },

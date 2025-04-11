@@ -11,12 +11,12 @@ declare global {
 const checkBrowserCompatibility = () => {
   // Check if running in browser environment
   if (typeof window === 'undefined') return true;
-  
+
   // Check audio support
   const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   // Check Web Audio API support
   const hasAudioContext = !!(window.AudioContext || window.webkitAudioContext);
-  
+
   return hasMediaDevices && hasAudioContext;
 };
 

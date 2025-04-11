@@ -5,7 +5,10 @@ import Link from "next/link";
 import { getRandomInterviewCover } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import DisplayTechIcons from "./DisplayTechIcons";
-import { getFeedbackByInterviewId } from "@/lib/actions/general.action";
+import {
+	getFeedbackByInterviewId,
+	getInterviewById,
+} from "@/lib/actions/general.action";
 
 interface InterviewCardProps {
 	id: string;
@@ -24,14 +27,19 @@ const InterviewCard = async ({
 	techstack = [], // Default to empty array
 	createdAt,
 }: InterviewCardProps) => {
-	const feedback =
-		userId && id
-			? await getFeedbackByInterviewId({ interviewId: id, userId })
-			: null;
+	// Get both feedback and interview data
+	const [feedback, interview] = await Promise.all([
+		userId && id ? getFeedbackByInterviewId({ interviewId: id, userId }) : null,
+		id ? getInterviewById(id) : null,
+	]);
+
 	const normalizedType = /mix/gi.test(type) ? "Mixed" : type;
 	const formattedDate = dayjs(
 		feedback?.createdAt || createdAt || Date.now()
 	).format("MMM D, YYYY");
+
+	// Check if interview is completed (either by feedback or status)
+	const isCompleted = feedback || interview?.status === "completed";
 
 	return (
 		<div className="card-border w-[360px] max-sm:w-full min-h-96">
@@ -65,16 +73,18 @@ const InterviewCard = async ({
 					</div>
 					<p className="line-clamp-2 mt-5 text-light-100">
 						{feedback?.finalAssessment ||
-							"You haven’t taken this interview yet. Take it now to improve your skills."}
+							"You haven't taken this interview yet. Take it now to improve your skills."}
 					</p>
 				</div>
 				<div className="flex flex-row justify-between items-center">
 					<DisplayTechIcons techStack={techstack} />
 					<Button className="btn-primary">
 						<Link
-							href={feedback ? `/interview/${id}/feedback` : `/interview/${id}`}
+							href={
+								isCompleted ? `/interview/${id}/feedback` : `/interview/${id}`
+							}
 						>
-							{feedback ? "Check Feedback" : "View Interview"}
+							{isCompleted ? "Check Feedback" : "View Interview"}
 						</Link>
 					</Button>
 				</div>

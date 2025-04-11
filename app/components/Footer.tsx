@@ -26,7 +26,7 @@ const Footer = () => {
 						</Link>
 
 						{/* Powered By */}
-						<p className="text-sm text-gray-400">Powered by UI22CS41</p>
+						<p className="text-sm text-gray-400">Powered by UI02, UI41, UI44</p>
 
 						{/* Social Links */}
 						<div className="flex gap-6">
